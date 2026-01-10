@@ -20,7 +20,7 @@ function App() {
         <Route path="/seats/:id" element={<SeatSelection/>} />
         <Route path="/passenger" element={<PassengerForm/>} />
         <Route path="/signup" element={<Signup/>} />
-        <Route path="/my-bokings" element={<BookingHistory/>} />
+        <Route path="/my-bookings" element={<BookingHistory/>} />
       </Routes>
       </MainLayout>
     </BrowserRouter>

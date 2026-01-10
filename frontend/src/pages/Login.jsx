@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
   const [form, setForm] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
@@ -28,60 +26,47 @@ const Login = () => {
       return;
     }
 
-    // ✅ Login successful
+    // ✅ SAVE LOGIN
     localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
-    toast.success("Login successful!");
 
-    // Redirect to page user originally wanted
-    navigate(from, { replace: true });
+    // ✅ FORCE NAVBAR UPDATE (same tab)
+    setTimeout(() => {
+      window.dispatchEvent(new Event("authChange"));
+    }, 0);
+
+    toast.success("Login successful!");
+    navigate("/");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white p-8 rounded-xl shadow w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-blue-600 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-96">
+        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full border p-2 mb-3"
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
+          className="w-full border p-2 mb-4"
+          required
+        />
+
+        <button className="w-full bg-blue-600 text-white py-2 rounded">
           Login
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 transition"
-          >
-            Login
-          </button>
-        </form>
-
-        <p className="text-sm text-center mt-4">
-          Don’t have an account?{" "}
-          <span
-            onClick={() => navigate("/signup")}
-            className="text-blue-600 cursor-pointer font-semibold"
-          >
-            Sign Up
-          </span>
-        </p>
-      </div>
+        </button>
+      </form>
     </div>
   );
 };
