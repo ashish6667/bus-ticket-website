@@ -4,6 +4,9 @@ import BusList from "./pages/BusList";
 import Login from "./pages/Login";
 import MainLayout from "./layout/MainLayout";
 import SeatSelection from "./pages/SeatSelection";
+import PassengerForm from "./pages/PassengerForm";
+import Signup from "./pages/Signup";
+import BookingHistory from "./pages/BookingHistory";
 
 
 function App() {
@@ -15,6 +18,9 @@ function App() {
         <Route path="/buses" element={<BusList />} />
         <Route path="/login" element={<Login />} />
         <Route path="/seats/:id" element={<SeatSelection/>} />
+        <Route path="/passenger" element={<PassengerForm/>} />
+        <Route path="/signup" element={<Signup/>} />
+        <Route path="/my-bokings" element={<BookingHistory/>} />
       </Routes>
       </MainLayout>
     </BrowserRouter>
