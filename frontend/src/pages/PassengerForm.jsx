@@ -6,9 +6,10 @@ const PassengerForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get booking data from state or tempBooking
+  // Get booking from location.state OR tempBooking
   const stateBooking = location.state || {};
   const tempBooking = JSON.parse(localStorage.getItem("tempBooking")) || {};
+
   const { bus, selectedSeats } = stateBooking.bus ? stateBooking : tempBooking;
 
   const [passenger, setPassenger] = useState({
@@ -19,8 +20,7 @@ const PassengerForm = () => {
 
   useEffect(() => {
     if (!bus || !selectedSeats) return;
-    // Clear tempBooking after using it
-    localStorage.removeItem("tempBooking");
+    localStorage.removeItem("tempBooking"); // clear temp after using
   }, []);
 
   if (!bus || !selectedSeats) {
@@ -44,16 +44,17 @@ const PassengerForm = () => {
     const bookingData = {
       busId: bus.id,
       busRoute: `${bus.from} → ${bus.to}`,
-      passenger: { ...passenger },
+      passenger,
       seats: selectedSeats,
       bookedAt: new Date().toLocaleString(),
     };
 
-    // Store bookings per user
+    //  USER-SPECIFIC KEY
     const userBookingKey = `bookings_${loggedInUser.email}`;
     const existingBookings =
       JSON.parse(localStorage.getItem(userBookingKey)) || [];
 
+    // Save only to this user
     localStorage.setItem(
       userBookingKey,
       JSON.stringify([...existingBookings, bookingData])

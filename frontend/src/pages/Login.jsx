@@ -13,26 +13,28 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const storedUser = JSON.parse(localStorage.getItem("signupUser"));
+    //  Get all users array
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    if (!storedUser || storedUser.email !== form.email) {
+    // Find user by email
+    const user = users.find(u => u.email === form.email);
+
+    if (!user) {
       toast.error("User not found. Please sign up first.");
       navigate("/signup");
       return;
     }
 
-    if (storedUser.password !== form.password) {
+    if (user.password !== form.password) {
       toast.error("Incorrect password");
       return;
     }
 
-    // ✅ SAVE LOGIN
-    localStorage.setItem("loggedInUser", JSON.stringify(storedUser));
+    //  Save current logged-in user
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-    // ✅ FORCE NAVBAR UPDATE (same tab)
-    setTimeout(() => {
-      window.dispatchEvent(new Event("authChange"));
-    }, 0);
+    //  Update navbar
+    window.dispatchEvent(new Event("authChange"));
 
     toast.success("Login successful!");
     navigate("/");

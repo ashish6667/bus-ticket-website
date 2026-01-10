@@ -12,38 +12,43 @@ const Signup = () => {
     confirmPassword: "",
   });
 
-  // Handle input change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Frontend validation
     if (form.password !== form.confirmPassword) {
       toast.error("Passwords do not match!");
       return;
     }
 
-    // Create signup object
-    const signupData = {
+    // ✅ Get existing users array or empty array
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+
+    // Check if email already exists
+    if (users.find(u => u.email === form.email)) {
+      toast.error("User already exists! Please login.");
+      navigate("/login");
+      return;
+    }
+
+    // Create new user
+    const newUser = {
       name: form.name,
       email: form.email,
       password: form.password,
     };
 
-    // ✅ SAVE SIGNUP USER IN LOCALSTORAGE (frontend-only)
-    localStorage.setItem("signupUser", JSON.stringify(signupData));
+    // Save user in users array
+    localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
-    console.log("Signup Data:", signupData);
+    // ✅ Also log in the new user immediately
+    localStorage.setItem("loggedInUser", JSON.stringify(newUser));
 
-    // Toast notification
     toast.success("Signup successful!");
-
-    // Redirect to login page
-    navigate("/login");
+    navigate("/"); // redirect to home
   };
 
   return (
@@ -60,7 +65,7 @@ const Signup = () => {
             placeholder="Full Name"
             value={form.name}
             onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border p-3 rounded"
             required
           />
 
@@ -70,7 +75,7 @@ const Signup = () => {
             placeholder="Email Address"
             value={form.email}
             onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border p-3 rounded"
             required
           />
 
@@ -80,7 +85,7 @@ const Signup = () => {
             placeholder="Password"
             value={form.password}
             onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border p-3 rounded"
             required
           />
 
@@ -90,13 +95,13 @@ const Signup = () => {
             placeholder="Confirm Password"
             value={form.confirmPassword}
             onChange={handleChange}
-            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border p-3 rounded"
             required
           />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700"
           >
             Sign Up
           </button>

@@ -14,10 +14,10 @@ const Navbar = () => {
     // Initial sync
     syncUser();
 
-    // Same-tab login/logout
+    // Listen for login/logout in same tab
     window.addEventListener("authChange", syncUser);
 
-    // Multi-tab sync
+    // Listen for login/logout in other tabs
     window.addEventListener("storage", syncUser);
 
     return () => {
@@ -27,9 +27,13 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
+    // Remove logged in user
     localStorage.removeItem("loggedInUser");
 
-    // Notify navbar
+    // Clear any temporary booking
+    localStorage.removeItem("tempBooking");
+
+    // Notify navbar in same tab
     window.dispatchEvent(new Event("authChange"));
 
     navigate("/login");

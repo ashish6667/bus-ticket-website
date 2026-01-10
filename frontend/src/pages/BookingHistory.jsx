@@ -7,13 +7,12 @@ const BookingHistory = () => {
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-
     if (!loggedInUser) {
-      navigate("/login"); // redirect if not logged in
+      navigate("/login");
       return;
     }
 
-    // Fetch bookings only for the logged-in user
+    //  Load only this user's bookings
     const userBookingKey = `bookings_${loggedInUser.email}`;
     const userBookings = JSON.parse(localStorage.getItem(userBookingKey)) || [];
 
@@ -30,28 +29,15 @@ const BookingHistory = () => {
 
       <div className="space-y-4">
         {bookings.map((b, index) => (
-          <div
-            key={index}
-            className="bg-white p-4 rounded-xl shadow"
-          >
-            <p>
-              <strong>Bus ID:</strong> {b.busId}
-            </p>
-            <p>
-              <strong>Route:</strong> {b.busRoute}
-            </p>
+          <div key={index} className="bg-white p-4 rounded-xl shadow">
+            <p><strong>Bus ID:</strong> {b.busId}</p>
+            <p><strong>Route:</strong> {b.busRoute}</p>
             <p>
               <strong>Passenger:</strong> {b.passenger.name} ({b.passenger.email})
             </p>
-            <p>
-              <strong>Phone:</strong> {b.passenger.phone}
-            </p>
-            <p>
-              <strong>Seats:</strong> {b.seats.join(", ")}
-            </p>
-            <p>
-              <strong>Booked At:</strong> {b.bookedAt}
-            </p>
+            <p><strong>Phone:</strong> {b.passenger.phone}</p>
+            <p><strong>Seats:</strong> {b.seats.join(", ")}</p>
+            <p><strong>Booked At:</strong> {b.bookedAt}</p>
           </div>
         ))}
       </div>
