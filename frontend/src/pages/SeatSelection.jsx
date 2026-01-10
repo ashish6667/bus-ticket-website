@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; 
 import Seat from "../components/Seat";
 
@@ -7,7 +7,7 @@ const SeatSelection = () => {
   const navigate = useNavigate(); 
 
   const totalSeats = 32;
-  const bookedSeats = [2, 5, 12, 18];
+  const bookedSeats = [2, 5, 12, 18]; // example booked seats
   const [selectedSeats, setSelectedSeats] = useState([]);
 
   const toggleSeat = (seatNumber) => {
@@ -17,6 +17,33 @@ const SeatSelection = () => {
         : [...prev, seatNumber]
     );
   };
+
+  const handleProceed = () => {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    const busInfo = { id, name: "Bus Name", from: "Delhi", to: "Jaipur" };
+
+    if (!loggedInUser) {
+      // Save temp booking data for after login
+      localStorage.setItem(
+        "tempBooking",
+        JSON.stringify({ bus: busInfo, selectedSeats })
+      );
+      // Redirect to login page
+      navigate("/login", { state: { from: "/passenger" } });
+      return;
+    }
+
+    // If logged in, go directly to passenger form
+    navigate("/passenger", { state: { bus: busInfo, selectedSeats } });
+  };
+
+  // Optional: prefill selectedSeats if coming back from login
+  useEffect(() => {
+    const tempBooking = JSON.parse(localStorage.getItem("tempBooking"));
+    if (tempBooking && tempBooking.selectedSeats) {
+      setSelectedSeats(tempBooking.selectedSeats);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -42,14 +69,7 @@ const SeatSelection = () => {
         <button
           disabled={selectedSeats.length === 0}
           className="mt-4 bg-blue-600 text-white px-6 py-2 rounded disabled:bg-gray-400"
-          onClick={() =>
-            navigate("/passenger", { 
-              state: {  
-                bus: { id, name: "Bus Name", from: "Delhi", to: "Jaipur" }, 
-                selectedSeats 
-              } 
-            })
-          }
+          onClick={handleProceed}
         >
           Proceed to Book
         </button>

@@ -1,17 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const PassengerForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { bus, selectedSeats } = location.state || {};
+
+  // Get booking data from state or tempBooking
+  const stateBooking = location.state || {};
+  const tempBooking = JSON.parse(localStorage.getItem("tempBooking")) || {};
+  const { bus, selectedSeats } = stateBooking.bus ? stateBooking : tempBooking;
 
   const [passenger, setPassenger] = useState({
     name: "",
     email: "",
     phone: "",
   });
+
+  useEffect(() => {
+    if (!bus || !selectedSeats) return;
+    // Clear tempBooking after using it
+    localStorage.removeItem("tempBooking");
+  }, []);
 
   if (!bus || !selectedSeats) {
     return <p className="p-6 text-red-600">No bus or seats selected!</p>;
@@ -33,31 +43,32 @@ const PassengerForm = () => {
 
     const bookingData = {
       busId: bus.id,
-      passenger: {
-        name: passenger.name,
-        email: passenger.email,
-        phone: passenger.phone,
-      },
+      busRoute: `${bus.from} → ${bus.to}`,
+      passenger: { ...passenger },
       seats: selectedSeats,
+      bookedAt: new Date().toLocaleString(),
     };
 
-    // Save booking history in localStorage
-    const existingBookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    // Store bookings per user
+    const userBookingKey = `bookings_${loggedInUser.email}`;
+    const existingBookings =
+      JSON.parse(localStorage.getItem(userBookingKey)) || [];
+
     localStorage.setItem(
-      "bookings",
+      userBookingKey,
       JSON.stringify([...existingBookings, bookingData])
     );
 
     toast.success("Booking successful!");
-    console.log("Booking Data:", bookingData);
-
-    navigate("/"); // redirect after booking
+    navigate("/my-bookings");
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="bg-white p-8 rounded-xl shadow w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-blue-600">Passenger Details</h1>
+        <h1 className="text-2xl font-bold mb-4 text-blue-600">
+          Passenger Details
+        </h1>
 
         <p className="mb-2">
           <strong>Bus:</strong> {bus.name} ({bus.from} → {bus.to})
