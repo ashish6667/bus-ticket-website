@@ -50,7 +50,6 @@ const SeatSelection = () => {
     if (!selectedSeat) return;
 
     const success = bookSeat(id, selectedSeat, user.email);
-
     if (!success) {
       toast.error("Seat already booked");
       refreshSeats(user.email);
@@ -60,11 +59,8 @@ const SeatSelection = () => {
 
     toast.success(`Seat ${selectedSeat} booked successfully`);
 
-    setSelectedSeat(null);
-    refreshSeats(user.email);
-
-    // ✅ REDIRECT TO MY BOOKINGS
-    navigate("/my-bookings");
+    // Redirect to payment page instead of my-bookings
+    navigate(`/payment/${id}`);
   };
 
   const seats = Array.from({ length: 20 }, (_, i) => i + 1);

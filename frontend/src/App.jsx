@@ -7,6 +7,7 @@ import SeatSelection from "./pages/SeatSelection";
 import PassengerForm from "./pages/PassengerForm";
 import Signup from "./pages/Signup";
 import BookingHistory from "./pages/BookingHistory";
+import Payment from "./pages/Payment";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/passenger" element={<PassengerForm />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/my-bookings" element={<BookingHistory />} />
+          <Route path="/payment/:id" element={<Payment />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
