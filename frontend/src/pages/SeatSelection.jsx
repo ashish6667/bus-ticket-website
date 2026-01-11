@@ -1,129 +1,122 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getBookedSeats, bookSeat } from "../utils/seatBooking";
 import toast from "react-hot-toast";
+import {
+  getBookedSeats,
+  getUserSeats,
+  bookSeat,
+  cancelSeat,
+} from "../utils/seatBooking";
 
 const SeatSelection = () => {
-  const { id } = useParams(); // Bus ID
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const [selectedSeats, setSelectedSeats] = useState([]);
-  const [bookedSeats, setBookedSeats] = useState([]); // numbers
-  const [mySeats, setMySeats] = useState([]); // numbers
-  const [userEmail, setUserEmail] = useState("");
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [mySeats, setMySeats] = useState([]);
+  const [selectedSeat, setSelectedSeat] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (!user) {
+    const loggedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!loggedUser) {
       navigate("/login");
       return;
     }
 
-    setUserEmail(user.email);
+    setUser(loggedUser);
+    refreshSeats(loggedUser.email);
+  }, [id]);
 
-    // Read raw bookings from localStorage
-    const allBookings = JSON.parse(localStorage.getItem("bookings")) || {};
-    const busBookings = Array.isArray(allBookings[id]) ? allBookings[id] : [];
-
-    const allSeatNumbers = busBookings.map((b) => b.seatNumber);
-    const mySeatNumbers = busBookings
-      .filter((b) => b.userEmail === user.email)
-      .map((b) => b.seatNumber);
-
-    setBookedSeats(allSeatNumbers);
-    setMySeats(mySeatNumbers);
-  }, [id, navigate]);
-
-  const handleSelect = (seatNumber) => {
-    if (selectedSeats.includes(seatNumber)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== seatNumber));
-    } else {
-      setSelectedSeats([...selectedSeats, seatNumber]);
-    }
+  const refreshSeats = (email) => {
+    setBookedSeats(getBookedSeats(id));
+    setMySeats(getUserSeats(id, email));
   };
 
-  const handleBookSeats = () => {
-    let success = true;
-
-    for (let seat of selectedSeats) {
-      const booked = bookSeat(id, seat, userEmail);
-      if (!booked) {
-        success = false;
-        toast.error(`Seat ${seat} already booked`);
-      }
+  const handleSeatClick = (seat) => {
+    if (mySeats.includes(seat)) {
+      cancelSeat(id, seat, user.email);
+      toast.success(`Seat ${seat} cancelled`);
+      refreshSeats(user.email);
+      return;
     }
 
-    if (success) {
-      toast.success("Seats booked successfully!");
-      setSelectedSeats([]);
-      navigate("/my-bookings");
-    }
+    if (bookedSeats.includes(seat)) return;
+
+    setSelectedSeat(seat === selectedSeat ? null : seat);
   };
 
-  const totalSeats = 20;
-  const seats = Array.from({ length: totalSeats }, (_, i) => i + 1);
+  const handleBooking = () => {
+    if (!selectedSeat) return;
+
+    const success = bookSeat(id, selectedSeat, user.email);
+
+    if (!success) {
+      toast.error("Seat already booked");
+      refreshSeats(user.email);
+      setSelectedSeat(null);
+      return;
+    }
+
+    toast.success(`Seat ${selectedSeat} booked successfully`);
+
+    setSelectedSeat(null);
+    refreshSeats(user.email);
+
+    // ✅ REDIRECT TO MY BOOKINGS
+    navigate("/my-bookings");
+  };
+
+  const seats = Array.from({ length: 20 }, (_, i) => i + 1);
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Select Your Seats</h2>
+    <div className="p-6 max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Select Seat</h2>
 
       <div className="grid grid-cols-5 gap-3 mb-6">
-        {seats.map((num) => {
-          const isBooked = bookedSeats.includes(num);
-          const isMine = mySeats.includes(num);
-          const isSelected = selectedSeats.includes(num);
+        {seats.map((seat) => {
+          const isBooked = bookedSeats.includes(seat);
+          const isMine = mySeats.includes(seat);
+          const isSelected = seat === selectedSeat;
+
+          let style =
+            "w-10 h-10 flex items-center justify-center rounded font-semibold cursor-pointer ";
+
+          if (isMine) style += "bg-red-600 text-white";
+          else if (isBooked)
+            style += "bg-gray-400 text-white cursor-not-allowed";
+          else if (isSelected) style += "bg-green-600 text-white";
+          else style += "bg-white border hover:bg-green-100";
 
           return (
             <div
-              key={num}
-              title={isBooked ? "Already booked" : "Available"}
-              onClick={() =>
-                !isBooked && handleSelect(num)
+              key={seat}
+              className={style}
+              title={
+                isMine
+                  ? "Click to cancel booking"
+                  : isBooked
+                  ? "Already booked"
+                  : ""
               }
-              className={`w-10 h-10 flex items-center justify-center rounded text-sm font-semibold
-                ${
-                  isBooked
-                    ? isMine
-                      ? "bg-red-600 text-white cursor-not-allowed"
-                      : "bg-gray-400 text-white cursor-not-allowed"
-                    : isSelected
-                    ? "bg-green-500 text-white cursor-pointer"
-                    : "bg-white border cursor-pointer hover:bg-green-100"
-                }`}
-            >
-              {num}
+              onClick={() => handleSeatClick(seat)}>
+              {seat}
             </div>
           );
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 mb-4 text-sm">
-        <span className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-white border"></div> Available
-        </span>
-        <span className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-500"></div> Selected
-        </span>
-        <span className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-gray-400"></div> Booked
-        </span>
-        <span className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-600"></div> Your Seats
-        </span>
-      </div>
-
       <button
-        onClick={handleBookSeats}
-        disabled={!selectedSeats.length}
-        className={`px-4 py-2 rounded font-semibold transition
+        onClick={handleBooking}
+        disabled={!selectedSeat}
+        className={`w-full py-2 rounded font-semibold transition
           ${
-            selectedSeats.length
+            selectedSeat
               ? "bg-blue-600 text-white hover:bg-blue-700"
               : "bg-gray-300 cursor-not-allowed"
-          }`}
-      >
-        Book Selected Seats
+          }
+        `}>
+        Book Seat
       </button>
     </div>
   );
