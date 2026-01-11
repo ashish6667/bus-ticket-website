@@ -1,4 +1,14 @@
-const Seat = ({ number, isBooked, isSelected, onSelect }) => {
+import React, { useState, useEffect } from "react";
+import { getBookedSeats, bookSeat } from "../utils/seatBooking";
+
+const Seat = ({ busId, date, number, isSelected, onSelect }) => {
+  const [isBooked, setIsBooked] = useState(false);
+
+  useEffect(() => {
+    const bookedSeats = getBookedSeats(busId, date);
+    setIsBooked(bookedSeats.includes(number));
+  }, [busId, date, number]);
+
   let baseStyle =
     "w-10 h-10 flex items-center justify-center rounded cursor-pointer text-sm font-semibold";
 
@@ -13,7 +23,9 @@ const Seat = ({ number, isBooked, isSelected, onSelect }) => {
   return (
     <div
       className={baseStyle}
-      onClick={() => !isBooked && onSelect(number)}
+      onClick={() => {
+        if (!isBooked) onSelect(number);
+      }}
     >
       {number}
     </div>

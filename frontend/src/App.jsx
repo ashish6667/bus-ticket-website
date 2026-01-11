@@ -8,20 +8,19 @@ import PassengerForm from "./pages/PassengerForm";
 import Signup from "./pages/Signup";
 import BookingHistory from "./pages/BookingHistory";
 
-
 function App() {
   return (
     <BrowserRouter>
       <MainLayout>
         <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/buses" element={<BusList />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/seats/:id" element={<SeatSelection/>} />
-        <Route path="/passenger" element={<PassengerForm/>} />
-        <Route path="/signup" element={<Signup/>} />
-        <Route path="/my-bookings" element={<BookingHistory/>} />
-      </Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/buses" element={<BusList />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/select-seat/:id" element={<SeatSelection />} />
+          <Route path="/passenger" element={<PassengerForm />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/my-bookings" element={<BookingHistory />} />
+        </Routes>
       </MainLayout>
     </BrowserRouter>
   );

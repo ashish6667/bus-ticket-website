@@ -1,79 +1,90 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; 
-import Seat from "../components/Seat";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getBookedSeats, bookSeat } from "../utils/seatBooking";
+import toast from "react-hot-toast";
 
 const SeatSelection = () => {
-  const { id } = useParams();
-  const navigate = useNavigate(); 
-
-  const totalSeats = 32;
-  const bookedSeats = [2, 5, 12, 18]; // example booked seats
+  const { id } = useParams(); // Bus ID
+  const navigate = useNavigate();
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [userEmail, setUserEmail] = useState("");
 
-  const toggleSeat = (seatNumber) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seatNumber)
-        ? prev.filter((s) => s !== seatNumber)
-        : [...prev, seatNumber]
-    );
-  };
-
-  const handleProceed = () => {
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    const busInfo = { id, name: "Bus Name", from: "Delhi", to: "Jaipur" };
-
-    if (!loggedInUser) {
-      // Save temp booking data for after login
-      localStorage.setItem(
-        "tempBooking",
-        JSON.stringify({ bus: busInfo, selectedSeats })
-      );
-      // Redirect to login page
-      navigate("/login", { state: { from: "/passenger" } });
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!user) {
+      navigate("/login");
       return;
     }
+    setUserEmail(user.email);
 
-    // If logged in, go directly to passenger form
-    navigate("/passenger", { state: { bus: busInfo, selectedSeats } });
+    const seats = getBookedSeats(id); // already numbers
+    setBookedSeats(seats);
+  }, [id, navigate]);
+
+  const handleSelect = (seatNumber) => {
+    if (selectedSeats.includes(seatNumber)) {
+      setSelectedSeats(selectedSeats.filter((s) => s !== seatNumber));
+    } else {
+      setSelectedSeats([...selectedSeats, seatNumber]);
+    }
   };
 
-  // Optional: prefill selectedSeats if coming back from login
-  useEffect(() => {
-    const tempBooking = JSON.parse(localStorage.getItem("tempBooking"));
-    if (tempBooking && tempBooking.selectedSeats) {
-      setSelectedSeats(tempBooking.selectedSeats);
+  const handleBookSeats = () => {
+    let success = true;
+
+    for (let seat of selectedSeats) {
+      const booked = bookSeat(id, seat, userEmail);
+      if (!booked) {
+        success = false;
+        toast.error(`Seat ${seat} is already booked!`);
+      }
     }
-  }, []);
+
+    if (success) {
+      toast.success("Seats booked successfully!");
+      navigate("/my-bookings");
+    } else {
+      // Refresh booked seats if conflict
+      const seats = getBookedSeats(id);
+      setBookedSeats(seats);
+      setSelectedSeats([]);
+    }
+  };
+
+  const totalSeats = 20;
+  const seats = Array.from({ length: totalSeats }, (_, i) => i + 1);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-2xl font-bold mb-6">Select Seats (Bus #{id})</h1>
-
-      <div className="grid grid-cols-4 gap-4 w-max bg-white p-6 rounded-xl shadow">
-        {[...Array(totalSeats)].map((_, i) => (
-          <Seat
-            key={i}
-            number={i + 1}
-            isBooked={bookedSeats.includes(i + 1)}
-            isSelected={selectedSeats.includes(i + 1)}
-            onSelect={toggleSeat}
-          />
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">Select Your Seats</h2>
+      <div className="grid grid-cols-5 gap-3 mb-4">
+        {seats.map((num) => (
+          <div
+            key={num}
+            className={`w-10 h-10 flex items-center justify-center rounded cursor-pointer text-sm font-semibold 
+              ${bookedSeats.includes(num)
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : selectedSeats.includes(num)
+                ? "bg-green-600 text-white"
+                : "bg-white border hover:bg-green-100"}`}
+            onClick={() => !bookedSeats.includes(num) && handleSelect(num)}
+          >
+            {num}
+          </div>
         ))}
       </div>
 
-      <div className="mt-6">
-        <p className="font-semibold">
-          Selected Seats: {selectedSeats.join(", ") || "None"}
-        </p>
-
-        <button
-          disabled={selectedSeats.length === 0}
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded disabled:bg-gray-400"
-          onClick={handleProceed}
-        >
-          Proceed to Book
-        </button>
-      </div>
+      <button
+        onClick={handleBookSeats}
+        disabled={!selectedSeats.length}
+        className={`px-4 py-2 rounded font-semibold transition
+          ${selectedSeats.length
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-300 cursor-not-allowed"}`}
+      >
+        Book Selected Seats
+      </button>
     </div>
   );
 };
