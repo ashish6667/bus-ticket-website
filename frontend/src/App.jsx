@@ -21,11 +21,9 @@ function App() {
           <Route path="/passenger" element={<PassengerForm />} />
           <Route path="/my-bookings" element={<BookingHistory />} />
           <Route path="/payment/:id" element={<Payment />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Route>
-
-        {/* Auth routes (outside layout if you want) */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
       </Routes>
     </BrowserRouter>
   );
