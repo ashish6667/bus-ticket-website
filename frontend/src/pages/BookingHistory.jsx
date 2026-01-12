@@ -1,45 +1,60 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { buses } from "../data/buses";
 
 const BookingHistory = () => {
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (!loggedInUser) {
-      navigate("/login");
-      return;
-    }
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!user) return;
 
-    //  Load only this user's bookings
-    const userBookingKey = `bookings_${loggedInUser.email}`;
-    const userBookings = JSON.parse(localStorage.getItem(userBookingKey)) || [];
+    const allBookings = JSON.parse(localStorage.getItem("myBookings")) || [];
 
-    setBookings(userBookings);
+    // Show only current user's bookings
+    const userBookings = allBookings.filter(
+      b => b.email === user.email
+    );
+
+    setBookings(userBookings.reverse()); // latest first
   }, []);
 
-  if (bookings.length === 0) {
-    return <p className="p-6 text-red-600">No bookings found!</p>;
+  if (!bookings.length) {
+    return (
+      <div className="text-center mt-10 text-gray-600">
+        No bookings found 🚍
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-2xl font-bold mb-6 text-blue-600">My Bookings</h1>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
 
       <div className="space-y-4">
-        {bookings.map((b, index) => (
-          <div key={index} className="bg-white p-4 rounded-xl shadow">
-            <p><strong>Bus ID:</strong> {b.busId}</p>
-            <p><strong>Route:</strong> {b.busRoute}</p>
-            <p>
-              <strong>Passenger:</strong> {b.passenger.name} ({b.passenger.email})
-            </p>
-            <p><strong>Phone:</strong> {b.passenger.phone}</p>
-            <p><strong>Seats:</strong> {b.seats.join(", ")}</p>
-            <p><strong>Booked At:</strong> {b.bookedAt}</p>
-          </div>
-        ))}
+        {bookings.map((b, index) => {
+          const bus = buses.find(bus => bus.id === Number(b.busId));
+
+          return (
+            <div
+              key={index}
+              className="bg-white shadow rounded p-4 border-l-4 border-blue-600"
+            >
+              <p className="font-semibold">
+                Route: {bus?.from} → {bus?.to}
+              </p>
+
+              <p>Passenger: {b.name} ({b.email})</p>
+              <p>Phone: {b.phone}</p>
+              <p className="font-bold text-green-600">
+                Seat No: {b.seatNumber}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                Booked At: {b.bookedAt} (IST)
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

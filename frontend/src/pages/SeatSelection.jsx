@@ -9,7 +9,7 @@ import {
 } from "../utils/seatBooking";
 
 const SeatSelection = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // bus id
   const navigate = useNavigate();
 
   const [bookedSeats, setBookedSeats] = useState([]);
@@ -17,6 +17,7 @@ const SeatSelection = () => {
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Load logged in user and refresh seats
   useEffect(() => {
     const loggedUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!loggedUser) {
@@ -28,12 +29,17 @@ const SeatSelection = () => {
     refreshSeats(loggedUser.email);
   }, [id]);
 
+  // Refresh seat states
   const refreshSeats = (email) => {
     setBookedSeats(getBookedSeats(id));
     setMySeats(getUserSeats(id, email));
   };
 
+  // Handle seat click
   const handleSeatClick = (seat) => {
+    if (!user) return;
+
+    // Cancel my seat
     if (mySeats.includes(seat)) {
       cancelSeat(id, seat, user.email);
       toast.success(`Seat ${seat} cancelled`);
@@ -41,15 +47,18 @@ const SeatSelection = () => {
       return;
     }
 
+    // Ignore booked seats
     if (bookedSeats.includes(seat)) return;
 
+    // Select only one seat
     setSelectedSeat(seat === selectedSeat ? null : seat);
   };
 
+  // Handle booking
   const handleBooking = () => {
-    if (!selectedSeat) return;
+    if (!selectedSeat || !user) return;
 
-    const success = bookSeat(id, selectedSeat, user.email);
+    const success = bookSeat(id, selectedSeat, user);
     if (!success) {
       toast.error("Seat already booked");
       refreshSeats(user.email);
@@ -59,10 +68,14 @@ const SeatSelection = () => {
 
     toast.success(`Seat ${selectedSeat} booked successfully`);
 
-    // Redirect to payment page instead of my-bookings
+    setSelectedSeat(null);
+    refreshSeats(user.email);
+
+    // Redirect to payment
     navigate(`/payment/${id}`);
   };
 
+  // Example: 20 seats per bus
   const seats = Array.from({ length: 20 }, (_, i) => i + 1);
 
   return (
@@ -78,11 +91,11 @@ const SeatSelection = () => {
           let style =
             "w-10 h-10 flex items-center justify-center rounded font-semibold cursor-pointer ";
 
-          if (isMine) style += "bg-red-600 text-white";
+          if (isMine) style += "bg-red-600 text-white"; // my seats → red
           else if (isBooked)
-            style += "bg-gray-400 text-white cursor-not-allowed";
-          else if (isSelected) style += "bg-green-600 text-white";
-          else style += "bg-white border hover:bg-green-100";
+            style += "bg-gray-400 text-white cursor-not-allowed"; // booked → gray
+          else if (isSelected) style += "bg-green-600 text-white"; // selected → green
+          else style += "bg-white border hover:bg-green-100"; // available
 
           return (
             <div
@@ -95,7 +108,8 @@ const SeatSelection = () => {
                   ? "Already booked"
                   : ""
               }
-              onClick={() => handleSeatClick(seat)}>
+              onClick={() => handleSeatClick(seat)}
+            >
               {seat}
             </div>
           );
@@ -111,7 +125,8 @@ const SeatSelection = () => {
               ? "bg-blue-600 text-white hover:bg-blue-700"
               : "bg-gray-300 cursor-not-allowed"
           }
-        `}>
+        `}
+      >
         Book Seat
       </button>
     </div>
