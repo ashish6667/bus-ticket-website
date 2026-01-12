@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { buses } from "../data/buses";
 
@@ -10,21 +9,32 @@ const BusList = () => {
   const to = searchParams.get("to");
   const date = searchParams.get("date");
 
-  // Redirect to home if any query param is missing
-  useEffect(() => {
-    if (!from || !to || !date) {
-      navigate("/"); // Go back to search page
-    }
-  }, [from, to, date, navigate]);
+  const filteredBuses =
+    from && to
+      ? buses.filter(
+          (bus) =>
+            bus.from.toLowerCase() === from.toLowerCase() &&
+            bus.to.toLowerCase() === to.toLowerCase()
+        )
+      : [];
 
-  // Filter buses safely
-  const filteredBuses = buses.filter(
-    (bus) =>
-      from &&
-      to &&
-      bus.from.toLowerCase() === from.toLowerCase() &&
-      bus.to.toLowerCase() === to.toLowerCase()
-  );
+  // 👉 If user opened /buses directly
+  if (!from || !to || !date) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-6 rounded shadow text-center">
+          <h2 className="text-xl font-bold mb-3">
+            Search buses to continue 🚍
+          </h2>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Go to Search
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -56,7 +66,9 @@ const BusList = () => {
               </div>
 
               <div className="text-right">
-                <p className="text-xl font-bold text-green-600">₹{bus.price}</p>
+                <p className="text-xl font-bold text-green-600">
+                  ₹{bus.price}
+                </p>
                 <button
                   onClick={() => navigate(`/select-seat/${bus.id}`)}
                   className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">

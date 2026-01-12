@@ -1,9 +1,13 @@
 import Navbar from "../components/Navbar";
-const MainLayout = ({ children }) => {
+import { Outlet } from "react-router-dom";
+
+const MainLayout = () => {
   return (
     <>
       <Navbar />
-      <main className="p-4">{children}</main>
+      <main className="p-4">
+        <Outlet />
+      </main>
     </>
   );
 };
