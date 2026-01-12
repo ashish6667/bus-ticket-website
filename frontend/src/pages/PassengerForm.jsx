@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const PassengerForm = () => {
   const { state } = useLocation();
@@ -12,18 +13,40 @@ const PassengerForm = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  const handleContinue = () => {
-    if (!name || !phone) {
-      alert("Please fill all passenger details");
-      return;
+  // 🔒 VALIDATION ON SUBMIT
+  const validate = () => {
+    if (!name.trim()) {
+      toast.error("Passenger name is required");
+      return false;
     }
+
+    if (name.trim().length < 3) {
+      toast.error("Name must be at least 3 characters");
+      return false;
+    }
+
+    if (!phone) {
+      toast.error("Phone number is required");
+      return false;
+    }
+
+    if (phone.length !== 10) {
+      toast.error("Phone number must be exactly 10 digits");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleContinue = () => {
+    if (!validate()) return;
 
     navigate(`/payment/${busId}`, {
       state: {
         busId,
         seats,
         passenger: {
-          name,
+          name: name.trim(),
           phone,
         },
       },
@@ -38,25 +61,37 @@ const PassengerForm = () => {
         <strong>Seats:</strong> {seats.join(", ")}
       </p>
 
+      {/* ✅ NAME — LETTERS ONLY */}
       <input
         type="text"
         placeholder="Passenger Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          // Allow only letters and spaces
+          const value = e.target.value.replace(/[^A-Za-z ]/g, "");
+          setName(value);
+        }}
         className="w-full border p-2 rounded mb-3"
       />
 
+      {/* ✅ PHONE — NUMBERS ONLY */}
       <input
-        type="tel"
-        placeholder="Phone Number"
+        type="text"
+        placeholder="10-digit Mobile Number"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          // Allow only digits and limit to 10
+          const value = e.target.value.replace(/\D/g, "");
+          if (value.length <= 10) {
+            setPhone(value);
+          }
+        }}
         className="w-full border p-2 rounded mb-4"
       />
 
       <button
         onClick={handleContinue}
-        className="w-full bg-blue-600 text-white py-2 rounded"
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
       >
         Continue to Payment
       </button>
