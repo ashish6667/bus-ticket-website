@@ -1,64 +1,50 @@
 import { getISTDateTime } from "./dateTime";
 
-// Get booked seats for a bus
+// Get all bookings safely
+const getAllBookings = () => {
+  const data = JSON.parse(localStorage.getItem("myBookings"));
+  return Array.isArray(data) ? data : [];
+};
+
+// Get booked seat numbers for a bus
 export const getBookedSeats = (busId) => {
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-  const busBookings = bookings[busId] || [];
+  const bookings = getAllBookings();
+  const busBookings = bookings.filter(b => b.busId === busId);
   return busBookings.map(b => b.seatNumber);
 };
 
 // Get seats booked by a specific user
 export const getUserSeats = (busId, userEmail) => {
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-  const busBookings = bookings[busId] || [];
-  return busBookings
-    .filter(b => b.userEmail === userEmail)
-    .map(b => b.seatNumber);
+  const bookings = getAllBookings();
+  const busBookings = bookings.filter(b => b.busId === busId && b.email === userEmail);
+  return busBookings.map(b => b.seatNumber);
 };
 
-// BOOK SEAT
+// Book seat
 export const bookSeat = (busId, seatNumber, user) => {
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-  const myBookings = JSON.parse(localStorage.getItem("myBookings")) || [];
+  const bookings = getAllBookings();
 
-  const busBookings = bookings[busId] || [];
+  // Check if seat is already booked by anyone
+  const seatTaken = bookings.some(b => b.busId === busId && b.seatNumber === seatNumber);
+  if (seatTaken) return false;
 
-  if (busBookings.some(b => b.seatNumber === seatNumber)) {
-    return false;
-  }
-
-  busBookings.push({ seatNumber, userEmail: user.email });
-  bookings[busId] = busBookings;
-  localStorage.setItem("bookings", JSON.stringify(bookings));
-
-  myBookings.push({
+  const myBooking = {
     busId,
     seatNumber,
     name: user.name,
     email: user.email,
-    phone: user.phone,
+    phone: user.phone || "N/A",
     bookedAt: getISTDateTime(),
-  });
+  };
 
-  localStorage.setItem("myBookings", JSON.stringify(myBookings));
+  bookings.push(myBooking);
+  localStorage.setItem("myBookings", JSON.stringify(bookings));
   return true;
 };
 
-// CANCEL SEAT
+// Cancel seat
 export const cancelSeat = (busId, seatNumber, userEmail) => {
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-  const myBookings = JSON.parse(localStorage.getItem("myBookings")) || [];
-
-  bookings[busId] = (bookings[busId] || []).filter(
-    b => b.seatNumber !== seatNumber
-  );
-
-  localStorage.setItem("bookings", JSON.stringify(bookings));
-
-  const updatedMyBookings = myBookings.filter(
-    b =>
-      !(b.busId === busId && b.seatNumber === seatNumber && b.email === userEmail)
-  );
-
-  localStorage.setItem("myBookings", JSON.stringify(updatedMyBookings));
+  const bookings = getAllBookings();
+  const updated = bookings.filter(b => !(b.busId === busId && b.seatNumber === seatNumber && b.email === userEmail));
+  localStorage.setItem("myBookings", JSON.stringify(updated));
 };
