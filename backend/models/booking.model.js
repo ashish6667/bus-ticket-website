@@ -17,6 +17,7 @@ const bookingSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      index: true,
     },
     phone: {
       type: String,
@@ -25,7 +26,10 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//  Prevent duplicate seat booking per bus
-bookingSchema.index({ busId: 1, seatNumber: 1 }, { unique: true });
+//  Prevent duplicate seat booking
+bookingSchema.index(
+  { busId: 1, seatNumber: 1 },
+  { unique: true }
+);
 
 export default mongoose.model("Booking", bookingSchema);

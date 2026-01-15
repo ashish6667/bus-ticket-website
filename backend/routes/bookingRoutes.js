@@ -5,10 +5,15 @@ import {
   getBookedSeats,
 } from "../controllers/booking.ctrl.js";
 
+import protect from "../middlewares/auth.js"; //  correct path
+
 const router = express.Router();
 
-router.post("/", createBooking);
-router.get("/:email", getUserBookings);
+//  PROTECTED ROUTES
+router.post("/", protect, createBooking);
+router.get("/", protect, getUserBookings);
+
+//  PUBLIC ROUTE
 router.get("/seats/:busId", getBookedSeats);
 
 export default router;
