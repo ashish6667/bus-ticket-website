@@ -1,56 +1,52 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { createBooking } from "../api/bookingApi";
 import toast from "react-hot-toast";
 
 const PassengerForm = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  if (!state) return null;
+  const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+  // Safety check
+  if (!state || !user) {
+    navigate("/");
+    return null;
+  }
 
   const { busId, seats } = state;
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(user.name || "");
   const [phone, setPhone] = useState("");
 
-  // 🔒 VALIDATION ON SUBMIT
-  const validate = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
-      toast.error("Passenger name is required");
-      return false;
-    }
-
-    if (name.trim().length < 3) {
-      toast.error("Name must be at least 3 characters");
-      return false;
-    }
-
-    if (!phone) {
-      toast.error("Phone number is required");
-      return false;
+      toast.error("Enter valid name");
+      return;
     }
 
     if (phone.length !== 10) {
-      toast.error("Phone number must be exactly 10 digits");
-      return false;
+      toast.error("Phone number must be 10 digits");
+      return;
     }
 
-    return true;
-  };
-
-  const handleContinue = () => {
-    if (!validate()) return;
-
-    navigate(`/payment/${busId}`, {
-      state: {
-        busId,
-        seats,
-        passenger: {
-          name: name.trim(),
+    try {
+      for (const seat of seats) {
+        await createBooking({
+          busId,
+          seatNumber: seat,
+          name,
+          email: user.email,
           phone,
-        },
-      },
-    });
+        });
+      }
+
+      toast.success("Booking successful 🚍");
+      navigate("/my-bookings");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Booking failed");
+    }
   };
 
   return (
@@ -61,39 +57,29 @@ const PassengerForm = () => {
         <strong>Seats:</strong> {seats.join(", ")}
       </p>
 
-      {/* ✅ NAME — LETTERS ONLY */}
       <input
-        type="text"
         placeholder="Passenger Name"
         value={name}
-        onChange={(e) => {
-          // Allow only letters and spaces
-          const value = e.target.value.replace(/[^A-Za-z ]/g, "");
-          setName(value);
-        }}
+        onChange={(e) =>
+          setName(e.target.value.replace(/[^a-zA-Z ]/g, ""))
+        }
         className="w-full border p-2 rounded mb-3"
       />
 
-      {/* ✅ PHONE — NUMBERS ONLY */}
       <input
-        type="text"
-        placeholder="10-digit Mobile Number"
+        placeholder="Phone Number"
         value={phone}
-        onChange={(e) => {
-          // Allow only digits and limit to 10
-          const value = e.target.value.replace(/\D/g, "");
-          if (value.length <= 10) {
-            setPhone(value);
-          }
-        }}
+        onChange={(e) =>
+          setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+        }
         className="w-full border p-2 rounded mb-4"
       />
 
       <button
-        onClick={handleContinue}
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        onClick={handleSubmit}
+        className="w-full bg-green-600 text-white py-2 rounded"
       >
-        Continue to Payment
+        Pay & Book
       </button>
     </div>
   );
