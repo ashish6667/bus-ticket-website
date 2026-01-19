@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { registerUser } from "../api/authApi";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Signup = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
@@ -24,31 +25,13 @@ const Signup = () => {
       return;
     }
 
-    // ✅ Get existing users array or empty array
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    // Check if email already exists
-    if (users.find(u => u.email === form.email)) {
-      toast.error("User already exists! Please login.");
+    try {
+      await registerUser(form.name, form.email, form.password);
+      toast.success("Signup successful! Please login.");
       navigate("/login");
-      return;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Signup failed");
     }
-
-    // Create new user
-    const newUser = {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-    };
-
-    // Save user in users array
-    localStorage.setItem("users", JSON.stringify([...users, newUser]));
-
-    // ✅ Also log in the new user immediately
-    localStorage.setItem("loggedInUser", JSON.stringify(newUser));
-
-    toast.success("Signup successful!");
-    navigate("/"); // redirect to home
   };
 
   return (

@@ -2,14 +2,22 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const ProtectedRoute = () => {
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+  const token = localStorage.getItem("token"); //  JWT token
   const location = useLocation();
 
-  return loggedInUser ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/login" state={{ from: location }} replace />
-  );
+  //  No token → redirect to login
+  if (!token) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  //  Token exists → allow access
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

@@ -8,14 +8,17 @@ const PassengerForm = () => {
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("loggedInUser"));
+  const busId = state?.busId;
+
+  // Use seats from state or fallback to localStorage
+  const storedSeats = JSON.parse(localStorage.getItem(`selectedSeats_bus_${busId}`));
+  const seats = state?.seats || storedSeats || [];
 
   // Safety check
-  if (!state || !user) {
+  if (!busId || !user) {
     navigate("/");
     return null;
   }
-
-  const { busId, seats } = state;
 
   const [name, setName] = useState(user.name || "");
   const [phone, setPhone] = useState("");
@@ -41,6 +44,9 @@ const PassengerForm = () => {
           phone,
         });
       }
+
+      // Clear selected seats after booking
+      localStorage.removeItem(`selectedSeats_bus_${busId}`);
 
       toast.success("Booking successful 🚍");
       navigate("/my-bookings");

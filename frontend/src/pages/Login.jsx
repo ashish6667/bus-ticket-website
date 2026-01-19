@@ -1,74 +1,89 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const { login } = useAuth();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //  Get all users array
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Find user by email
-    const user = users.find(u => u.email === form.email);
+      // Handle cases where the server returns a non-JSON error (like a default 401 page)
+      const data = await res.json().catch(() => ({}));
 
-    if (!user) {
-      toast.error("User not found. Please sign up first.");
-      navigate("/signup");
-      return;
+      if (!res.ok) {
+        throw new Error(data.message || res.statusText || "Login failed");
+      }
+
+      // ✅ SAVE NAME + EMAIL
+      login(
+        {
+          name: data.user.name,
+          email: data.user.email,
+        },
+        data.token
+      );
+
+      toast.success("Login successful! 🚀");
+      navigate("/");
+    } catch (err) {
+      toast.error(err.message);
     }
-
-    if (user.password !== form.password) {
-      toast.error("Incorrect password");
-      return;
-    }
-
-    //  Save current logged-in user
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-    //  Update navbar
-    window.dispatchEvent(new Event("authChange"));
-
-    toast.success("Login successful!");
-    navigate("/");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+    <div className="flex justify-center items-center min-h-[80vh] bg-gray-100">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Login to BusBook 🚍
+        </h2>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border p-2 mb-3"
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full border p-2 rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full border p-2 mb-4"
-          required
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full border p-2 rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <button className="w-full bg-blue-600 text-white py-2 rounded">
-          Login
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-center mt-4 text-sm">
+          Don’t have an account?{" "}
+          <Link to="/signup" className="text-blue-600">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

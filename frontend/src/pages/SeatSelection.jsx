@@ -4,18 +4,27 @@ import toast from "react-hot-toast";
 import { getBookedSeats } from "../api/bookingApi";
 
 const SeatSelection = () => {
-  const { id } = useParams();          // busId from URL
+  const { id } = useParams(); // busId from URL
   const navigate = useNavigate();
 
   const [bookedSeats, setBookedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
 
-  const TOTAL_SEATS = 40; // temporary (later from backend)
+  const TOTAL_SEATS = 40; // temporary (later fetch from backend)
 
+  // Load booked seats and previous selections from localStorage
   useEffect(() => {
     getBookedSeats(id)
-      .then(setBookedSeats)
+      .then((res) => {
+        // Ensure bookedSeats is always an array
+        const seatsArray = Array.isArray(res) ? res : res.bookedSeats || [];
+        setBookedSeats(seatsArray);
+      })
       .catch(() => toast.error("Failed to load seats"));
+
+    // Load selected seats for this bus from localStorage
+    const savedSeats = JSON.parse(localStorage.getItem(`selectedSeats_bus_${id}`));
+    if (Array.isArray(savedSeats)) setSelectedSeats(savedSeats);
   }, [id]);
 
   const toggleSeat = (seat) => {
@@ -24,11 +33,15 @@ const SeatSelection = () => {
       return;
     }
 
-    setSelectedSeats((prev) =>
-      prev.includes(seat)
+    setSelectedSeats((prev) => {
+      const updated = prev.includes(seat)
         ? prev.filter((s) => s !== seat)
-        : [...prev, seat]
-    );
+        : [...prev, seat];
+
+      // Persist selected seats for refresh
+      localStorage.setItem(`selectedSeats_bus_${id}`, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const continueBooking = () => {
@@ -52,7 +65,7 @@ const SeatSelection = () => {
       <div className="grid grid-cols-8 gap-2 mb-4">
         {Array.from({ length: TOTAL_SEATS }, (_, i) => {
           const seat = i + 1;
-          const isBooked = bookedSeats.includes(seat);
+          const isBooked = Array.isArray(bookedSeats) && bookedSeats.includes(seat);
           const isSelected = selectedSeats.includes(seat);
 
           return (
