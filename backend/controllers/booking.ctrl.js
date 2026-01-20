@@ -1,10 +1,10 @@
 import Booking from "../models/booking.model.js";
 
-/**
- * desc    Create booking (JWT protected)
- * route   POST /api/bookings
- * access  Private
- */
+
+ //desc    Create booking (JWT protected)
+ // route   POST /api/bookings
+ // access  Private
+ 
 export const createBooking = async (req, res) => {
   try {
     const { busId, seatNumber, name, phone } = req.body;
@@ -12,7 +12,7 @@ export const createBooking = async (req, res) => {
     // user info from JWT
     const { email, id: userId } = req.user;
 
-    /* ================= Validation ================= */
+    // Validation
     if (!busId || seatNumber === undefined || !name) {
       return res.status(400).json({
         success: false,
@@ -27,7 +27,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    /* ================= Prevent duplicate booking ================= */
+    // Prevent duplicate booking 
     const existingBooking = await Booking.findOne({
       busId,
       seatNumber,
@@ -40,7 +40,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    /* ================= Create booking ================= */
+    // Create booking 
     const booking = await Booking.create({
       busId,
       seatNumber,
@@ -64,11 +64,11 @@ export const createBooking = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get logged-in user's bookings
- * @route   GET /api/bookings
- * @access  Private
- */
+
+ //   Get logged-in user's bookings
+ //route   GET /api/bookings
+ //access  Private
+ 
 export const getUserBookings = async (req, res) => {
   try {
     const { email } = req.user;
@@ -91,11 +91,10 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get booked seats for a bus
- * @route   GET /api/bookings/seats/:busId
- * @access  Public
- */
+//  Get booked seats for a bus
+ //route   GET /api/bookings/seats/:busId
+ //access  Public
+ 
 export const getBookedSeats = async (req, res) => {
   try {
     const { busId } = req.params;
@@ -125,11 +124,11 @@ export const getBookedSeats = async (req, res) => {
   }
 };
 
-/**
- * @desc    Cancel booking (JWT protected)
- * @route   DELETE /api/bookings/:id
- * @access  Private
- */
+
+ //desc    Cancel booking (JWT protected)
+ //route   DELETE /api/bookings/:id
+ //access  Private
+ 
 export const cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;

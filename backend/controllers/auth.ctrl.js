@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
-/* ================= REGISTER ================= */
+// REGISTER 
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -32,14 +32,14 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Register error:", error); // <-- detailed error in console
+    console.error("Register error:", error); 
 
     // Handle duplicate key error
     if (error.name === "MongoServerError" && error.code === 11000) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // Handle mongoose validation errors
+    // mongoose validation errors
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
     }
@@ -47,12 +47,12 @@ export const registerUser = async (req, res) => {
     // Other server errors
     res.status(500).json({
       message: "Server error",
-      error: error.message, // <-- send actual error message for debugging
+      error: error.message, 
     });
   }
 };
 
-/* ================= LOGIN ================= */
+//LOGIN 
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -105,16 +105,16 @@ export const loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error); // <-- detailed error in console
+    console.error("Login error:", error); 
 
-    // Handle mongoose validation errors
+    //  mongoose validation errors
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
     }
 
     res.status(500).json({
       message: "Login failed",
-      error: error.message, // <-- actual error message
+      error: error.message, 
     });
   }
 };

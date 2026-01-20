@@ -32,7 +32,7 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-/* 🔑 COMPARE PASSWORD */
+// COMPARE PASSWORD
 userSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
