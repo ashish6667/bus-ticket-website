@@ -48,9 +48,8 @@ export const createBooking = async (bookingData) => {
   return data.booking;
 };
 
-/*
-  GET logged-in user's bookings (PROTECTED - JWT)
- */
+
+ // GET logged-in user's bookings (PROTECTED - JWT)
 export const getMyBookings = async () => {
   const token = getToken();
 
@@ -74,9 +73,9 @@ export const getMyBookings = async () => {
   return Array.isArray(data.bookings) ? data.bookings : [];
 };
 
-/**
- * CANCEL booking (PROTECTED - JWT)
- * Backend returns: { success: true, message: "Booking cancelled" }
+/*
+  CANCEL booking (PROTECTED - JWT)
+  Backend returns: { success: true, message: "Booking cancelled" }
  */
 export const cancelBooking = async (bookingId) => {
   const token = getToken();

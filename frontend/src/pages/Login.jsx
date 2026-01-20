@@ -27,7 +27,7 @@ const Login = () => {
         throw new Error(data.message || res.statusText || "Login failed");
       }
 
-      // ✅ SAVE NAME + EMAIL
+      //  SAVE NAME + EMAIL
       login(
         {
           name: data.user.name,

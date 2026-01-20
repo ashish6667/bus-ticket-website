@@ -30,7 +30,7 @@ const BusSearch = () => {
       normalize(c) !== normalize(from)
   );
 
-  // ✅ CASE-INSENSITIVE VALIDATION
+  //  CASE-INSENSITIVE VALIDATION
   const isValid =
     cities.some((c) => normalize(c) === normalize(from)) &&
     cities.some((c) => normalize(c) === normalize(to)) &&
