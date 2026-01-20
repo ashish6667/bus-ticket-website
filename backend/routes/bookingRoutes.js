@@ -3,6 +3,7 @@ import {
   createBooking,
   getUserBookings,
   getBookedSeats,
+  cancelBooking,
 } from "../controllers/booking.ctrl.js";
 
 import protect from "../middlewares/auth.js";
@@ -29,5 +30,12 @@ router.get("/", protect, getUserBookings);
  * @access  Public
  */
 router.get("/seats/:busId", getBookedSeats);
+
+/**
+ * @route   DELETE /api/bookings/:id
+ * @desc    Cancel a booking (JWT protected)
+ * @access  Private
+ */
+router.delete("/:id", protect, cancelBooking);
 
 export default router;

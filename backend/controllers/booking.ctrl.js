@@ -1,9 +1,9 @@
 import Booking from "../models/booking.model.js";
 
 /**
- * @desc    Create booking (JWT protected)
- * @route   POST /api/bookings
- * @access  Private
+ * desc    Create booking (JWT protected)
+ * route   POST /api/bookings
+ * access  Private
  */
 export const createBooking = async (req, res) => {
   try {
@@ -20,7 +20,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    if (isNaN(seatNumber) || seatNumber < 0) {
+    if (isNaN(seatNumber) || seatNumber < 1) {
       return res.status(400).json({
         success: false,
         message: "Invalid seat number",
@@ -47,7 +47,7 @@ export const createBooking = async (req, res) => {
       name,
       email,
       phone,
-      userId, //  useful for future relations
+      userId,
     });
 
     res.status(201).json({
@@ -121,6 +121,49 @@ export const getBookedSeats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch booked seats",
+    });
+  }
+};
+
+/**
+ * @desc    Cancel booking (JWT protected)
+ * @route   DELETE /api/bookings/:id
+ * @access  Private
+ */
+export const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.user;
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    //  Only owner can cancel
+    if (booking.email !== email) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized cancellation",
+      });
+    }
+
+    await Booking.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking cancelled successfully",
+    });
+
+  } catch (error) {
+    console.error("Cancel booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel booking",
     });
   }
 };
