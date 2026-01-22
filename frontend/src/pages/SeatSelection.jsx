@@ -13,11 +13,14 @@ const SeatSelection = () => {
   const TOTAL_SEATS = 40;
   const AMOUNT_PER_SEAT = 50; // INR
 
+  // Use environment variable for backend URL
+  const API_URL = import.meta.env.VITE_API_BASE_URL + "/api";
+
   // Load booked seats from backend
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/bookings/seats/${busId}`);
+        const res = await fetch(`${API_URL}/bookings/seats/${busId}`);
         const data = await res.json();
         setBookedSeats(Array.isArray(data) ? data : data.bookedSeats || []);
       } catch (err) {
@@ -30,7 +33,7 @@ const SeatSelection = () => {
     // Reset selected seats on mount
     setSelectedSeats([]);
     localStorage.removeItem(`selectedSeats_bus_${busId}`);
-  }, [busId]);
+  }, [busId, API_URL]);
 
   const toggleSeat = (seat) => {
     if (bookedSeats.includes(seat)) {

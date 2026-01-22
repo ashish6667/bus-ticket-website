@@ -10,24 +10,26 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // Use environment variable for backend URL
+  const API_URL = import.meta.env.VITE_API_BASE_URL + "/api";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      // Handle cases where the server returns a non-JSON error (like a default 401 page)
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(data.message || res.statusText || "Login failed");
       }
 
-      //  SAVE NAME + EMAIL
+      // Save user info + token
       login(
         {
           name: data.user.name,
@@ -36,7 +38,7 @@ const Login = () => {
         data.token
       );
 
-      toast.success("Login successful! 🚀");
+      toast.success("Login successful! ");
       navigate("/");
     } catch (err) {
       toast.error(err.message);

@@ -24,7 +24,7 @@ const PaymentSuccess = () => {
         for (let seat of seats) {
           await createBooking({ busId, seatNumber: seat, name, phone });
         }
-        toast.success("Payment successful! Booking confirmed 🎉");
+        toast.success("Payment successful! Booking confirmed ");
         navigate("/my-bookings");
       } catch (err) {
         toast.error("Booking failed after payment");
