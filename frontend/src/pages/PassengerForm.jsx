@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createBooking } from "../api/bookingApi";
 import toast from "react-hot-toast";
 
 const PassengerForm = () => {
@@ -23,7 +22,7 @@ const PassengerForm = () => {
   const [name, setName] = useState(user.name || "");
   const [phone, setPhone] = useState("");
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!name.trim()) {
       toast.error("Enter valid name");
       return;
@@ -34,25 +33,22 @@ const PassengerForm = () => {
       return;
     }
 
-    try {
-      for (const seat of seats) {
-        await createBooking({
-          busId,
-          seatNumber: seat,
-          name,
-          email: user.email,
-          phone,
-        });
-      }
+    // Save booking info temporarily for payment
+    const bookingData = {
+      busId,
+      seats,
+      passenger: {
+        name,
+        phone,
+        email: user.email,
+      },
+      amount: seats.length * 50, // example: 50 INR per seat
+    };
 
-      // Clear selected seats after booking
-      localStorage.removeItem(`selectedSeats_bus_${busId}`);
+    localStorage.setItem("pendingBooking", JSON.stringify(bookingData));
 
-      toast.success("Booking successful 🚍");
-      navigate("/my-bookings");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Booking failed");
-    }
+    // Redirect to Payment page
+    navigate("/payment", { state: bookingData });
   };
 
   return (
@@ -66,18 +62,14 @@ const PassengerForm = () => {
       <input
         placeholder="Passenger Name"
         value={name}
-        onChange={(e) =>
-          setName(e.target.value.replace(/[^a-zA-Z ]/g, ""))
-        }
+        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z ]/g, ""))}
         className="w-full border p-2 rounded mb-3"
       />
 
       <input
         placeholder="Phone Number"
         value={phone}
-        onChange={(e) =>
-          setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-        }
+        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
         className="w-full border p-2 rounded mb-4"
       />
 
@@ -85,7 +77,7 @@ const PassengerForm = () => {
         onClick={handleSubmit}
         className="w-full bg-green-600 text-white py-2 rounded"
       >
-        Pay & Book
+        Proceed to Payment
       </button>
     </div>
   );

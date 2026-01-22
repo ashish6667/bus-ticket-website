@@ -1,31 +1,36 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { getBookedSeats } from "../api/bookingApi";
 
 const SeatSelection = () => {
-  const { id } = useParams(); // busId from URL
+  const { id: busId } = useParams();
   const navigate = useNavigate();
 
   const [bookedSeats, setBookedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const TOTAL_SEATS = 40; // temporary (later fetch from backend)
+  const TOTAL_SEATS = 40;
+  const AMOUNT_PER_SEAT = 50; // INR
 
-  // Load booked seats and previous selections from localStorage
+  // Load booked seats from backend
   useEffect(() => {
-    getBookedSeats(id)
-      .then((res) => {
-        // Ensure bookedSeats is always an array
-        const seatsArray = Array.isArray(res) ? res : res.bookedSeats || [];
-        setBookedSeats(seatsArray);
-      })
-      .catch(() => toast.error("Failed to load seats"));
+    const fetchBookedSeats = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/bookings/seats/${busId}`);
+        const data = await res.json();
+        setBookedSeats(Array.isArray(data) ? data : data.bookedSeats || []);
+      } catch (err) {
+        toast.error("Failed to load booked seats");
+      }
+    };
 
-    // Load selected seats for this bus from localStorage
-    const savedSeats = JSON.parse(localStorage.getItem(`selectedSeats_bus_${id}`));
-    if (Array.isArray(savedSeats)) setSelectedSeats(savedSeats);
-  }, [id]);
+    fetchBookedSeats();
+
+    // Reset selected seats on mount
+    setSelectedSeats([]);
+    localStorage.removeItem(`selectedSeats_bus_${busId}`);
+  }, [busId]);
 
   const toggleSeat = (seat) => {
     if (bookedSeats.includes(seat)) {
@@ -37,23 +42,24 @@ const SeatSelection = () => {
       const updated = prev.includes(seat)
         ? prev.filter((s) => s !== seat)
         : [...prev, seat];
-
-      // Persist selected seats for refresh
-      localStorage.setItem(`selectedSeats_bus_${id}`, JSON.stringify(updated));
+      localStorage.setItem(`selectedSeats_bus_${busId}`, JSON.stringify(updated));
       return updated;
     });
   };
 
-  const continueBooking = () => {
+  const proceedToPayment = () => {
     if (!selectedSeats.length) {
       toast.error("Select at least one seat");
       return;
     }
 
-    navigate("/passenger", {
+    const totalAmount = selectedSeats.length * AMOUNT_PER_SEAT;
+
+    navigate("/payment", {
       state: {
-        busId: id,
+        busId,
         seats: selectedSeats,
+        amount: totalAmount,
       },
     });
   };
@@ -65,19 +71,18 @@ const SeatSelection = () => {
       <div className="grid grid-cols-8 gap-2 mb-4">
         {Array.from({ length: TOTAL_SEATS }, (_, i) => {
           const seat = i + 1;
-          const isBooked = Array.isArray(bookedSeats) && bookedSeats.includes(seat);
+          const isBooked = bookedSeats.includes(seat);
           const isSelected = selectedSeats.includes(seat);
 
           return (
             <button
               key={seat}
-              disabled={isBooked}
+              disabled={isBooked || loading}
               onClick={() => toggleSeat(seat)}
               className={`p-2 rounded font-bold
                 ${isBooked ? "bg-gray-400 cursor-not-allowed" : ""}
                 ${isSelected ? "bg-green-600 text-white" : ""}
-                ${!isBooked && !isSelected ? "bg-blue-100" : ""}
-              `}
+                ${!isBooked && !isSelected ? "bg-blue-100" : ""}`}
             >
               {seat}
             </button>
@@ -86,8 +91,9 @@ const SeatSelection = () => {
       </div>
 
       <button
-        onClick={continueBooking}
+        onClick={proceedToPayment}
         className="w-full bg-green-600 text-white py-2 rounded"
+        disabled={loading}
       >
         Continue
       </button>
