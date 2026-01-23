@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "/api", // relative path works because of proxy
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
 });
 
 export const registerUser = async (name, email, password) => {
