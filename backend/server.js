@@ -12,25 +12,26 @@ dotenv.config();
 
 const app = express();
 
-/*  Stripe webhook MUST be raw */
+/* Stripe webhook MUST be raw */
 app.use(
   "/api/payments/webhook",
   express.raw({ type: "application/json" })
 );
 
-/*  Normal middleware */
+/* Normal middleware */
 app.use(cors());
 app.use(express.json());
 
-/* Routes */
+/* API Routes */
 app.use("/api/auth", authRoutes);
 app.use("/api/buses", busRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
 
+/* Health check (optional but useful) */
 app.get("/", (req, res) => {
   res.send("Bus Ticket API running...");
 });
 
-/*  DO NOT app.listen() on Vercel */
+/* DO NOT app.listen() on Vercel */
 export default app;
