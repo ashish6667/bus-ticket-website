@@ -24,9 +24,7 @@ export const getBookedSeats = async (busId) => {
 export const createBooking = async (bookingData) => {
   const token = getToken();
 
-  if (!token) {
-    throw new Error("User not authenticated");
-  }
+  if (!token) throw new Error("User not authenticated");
 
   const res = await fetch(`${API_URL}/bookings`, {
     method: "POST",
@@ -39,9 +37,7 @@ export const createBooking = async (bookingData) => {
 
   const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.message || "Booking failed");
-  }
+  if (!res.ok) throw new Error(data.message || "Booking failed");
 
   return data.booking;
 };
@@ -52,9 +48,7 @@ export const createBooking = async (bookingData) => {
 export const getMyBookings = async () => {
   const token = getToken();
 
-  if (!token) {
-    throw new Error("User not authenticated");
-  }
+  if (!token) throw new Error("User not authenticated");
 
   const res = await fetch(`${API_URL}/bookings`, {
     headers: {
@@ -64,10 +58,9 @@ export const getMyBookings = async () => {
 
   const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.message || "Failed to fetch bookings");
-  }
+  if (!res.ok) throw new Error(data.message || "Failed to fetch bookings");
 
+  // Always return an array
   return Array.isArray(data.bookings) ? data.bookings : [];
 };
 
@@ -77,9 +70,7 @@ export const getMyBookings = async () => {
 export const cancelBooking = async (bookingId) => {
   const token = getToken();
 
-  if (!token) {
-    throw new Error("User not authenticated");
-  }
+  if (!token) throw new Error("User not authenticated");
 
   const res = await fetch(`${API_URL}/bookings/${bookingId}`, {
     method: "DELETE",
@@ -90,9 +81,14 @@ export const cancelBooking = async (bookingId) => {
 
   const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.message || "Failed to cancel booking");
-  }
+  if (!res.ok) throw new Error(data.message || "Failed to cancel booking");
 
   return data;
+};
+
+/*
+  REFRESH bookings after payment
+*/
+export const refreshBookings = async () => {
+  return await getMyBookings(); // simply call getMyBookings for UI refresh
 };
