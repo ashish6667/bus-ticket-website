@@ -4,24 +4,21 @@ import Bus from "../models/bus.model.js";
  //route   GET /api/buses
  //access  Public
  
+
 export const getAllBuses = async (req, res) => {
   try {
     const buses = await Bus.find().lean();
-
-    res.status(200).json({
-      success: true,
-      count: buses.length,
-      buses,
-    });
-
+    res.status(200).json({ success: true, count: buses.length, buses });
   } catch (error) {
-    console.error("Fetch buses error:", error);
+    console.error("Fetch buses error:", error); // <-- logs to Vercel logs
     res.status(500).json({
       success: false,
-      message: "Failed to fetch buses",
+      message: error.message, // <-- temporarily return the real error
+      stack: error.stack,
     });
   }
 };
+
 
 
  //desc    Create new bus (Admin – future)
