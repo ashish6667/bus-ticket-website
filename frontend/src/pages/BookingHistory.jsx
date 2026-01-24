@@ -5,20 +5,24 @@ const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(null);
+  const [error, setError] = useState("");
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getMyBookings();
+      setBookings(data);
+    } catch (err) {
+      console.error("Failed to load bookings", err);
+      setError(err.message || "Failed to fetch bookings");
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const data = await getMyBookings();
-        setBookings(data);
-      } catch (error) {
-        console.error("Failed to load bookings", error);
-        setBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
   }, []);
 
@@ -36,14 +40,15 @@ const BookingHistory = () => {
       setBookings((prev) =>
         prev.filter((booking) => booking._id !== bookingId)
       );
-    } catch (error) {
-      alert(error.message || "Failed to cancel booking");
+    } catch (err) {
+      alert(err.message || "Failed to cancel booking");
     } finally {
       setCancelLoading(null);
     }
   };
 
   if (loading) return <p>Loading bookings...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
   if (!bookings.length) return <p>No bookings found</p>;
 
   return (
