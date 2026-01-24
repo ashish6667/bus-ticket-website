@@ -10,29 +10,32 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 dotenv.config();
 
-/*  CONNECT DATABASE */
-connectDB();
-
 const app = express();
 
-/* Stripe webhook MUST be raw */
-app.use(
-  "/api/payments/webhook",
-  express.raw({ type: "application/json" })
-);
-
-/* Normal middleware */
+/* Middleware */
 app.use(cors());
 app.use(express.json());
 
 /* API Routes */
 app.use("/api/auth", authRoutes);
-app.use("/api/buses", busRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/payments", paymentRoutes);
+app.use("/api/buses", async (req, res, next) => {
+  await connectDB(); // Ensure DB connected
+  next();
+}, busRoutes);
+
+app.use("/api/bookings", async (req, res, next) => {
+  await connectDB();
+  next();
+}, bookingRoutes);
+
+app.use("/api/payments", async (req, res, next) => {
+  await connectDB();
+  next();
+}, paymentRoutes);
 
 /* Health check */
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  await connectDB();
   res.send("Bus Ticket API running...");
 });
 
