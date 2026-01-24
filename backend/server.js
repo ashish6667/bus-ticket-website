@@ -10,6 +10,9 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 dotenv.config();
 
+/*  CONNECT DATABASE */
+connectDB();
+
 const app = express();
 
 /* Stripe webhook MUST be raw */
@@ -28,10 +31,9 @@ app.use("/api/buses", busRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
 
-/* Health check (optional but useful) */
+/* Health check */
 app.get("/", (req, res) => {
   res.send("Bus Ticket API running...");
 });
 
-/* DO NOT app.listen() on Vercel */
 export default app;
