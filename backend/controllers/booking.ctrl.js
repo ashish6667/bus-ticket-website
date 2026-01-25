@@ -71,15 +71,17 @@ export const createBooking = async (req, res) => {
  
 export const getUserBookings = async (req, res) => {
   try {
-    const { id: userId } = req.user;
+    const { email } = req.user;
 
-    const bookings = await Booking.find({ userId })
-      .sort({ createdAt: -1 });
+    const bookings = await Booking.find({ email })
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.status(200).json({
       success: true,
       bookings,
     });
+
   } catch (error) {
     console.error("Fetch bookings error:", error);
     res.status(500).json({
@@ -88,7 +90,6 @@ export const getUserBookings = async (req, res) => {
     });
   }
 };
-
 
 //  Get booked seats for a bus
  //route   GET /api/bookings/seats/:busId

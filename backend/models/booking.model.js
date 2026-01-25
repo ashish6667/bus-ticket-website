@@ -2,12 +2,6 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
     busId: {
       type: String,
       required: true,
@@ -23,12 +17,19 @@ const bookingSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      index: true,
     },
-    phone: String,
+    phone: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
 
-bookingSchema.index({ busId: 1, seatNumber: 1 }, { unique: true });
+//  Prevent duplicate seat booking
+bookingSchema.index(
+  { busId: 1, seatNumber: 1 },
+  { unique: true }
+);
 
 export default mongoose.model("Booking", bookingSchema);
