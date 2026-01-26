@@ -10,7 +10,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Use environment variable for backend URL
   const API_URL = import.meta.env.VITE_API_BASE_URL + "/api";
 
   const handleSubmit = async (e) => {
@@ -29,16 +28,20 @@ const Login = () => {
         throw new Error(data.message || res.statusText || "Login failed");
       }
 
-      // Save user info + token
-      login(
-        {
-          name: data.user.name,
-          email: data.user.email,
-        },
-        data.token
-      );
+      //  Save token in localStorage
+      localStorage.setItem("token", data.token);
 
-      toast.success("Login successful! ");
+      //  Save user info in localStorage
+      const userInfo = {
+        name: data.user.name,
+        email: data.user.email,
+      };
+      localStorage.setItem("loggedInUser", JSON.stringify(userInfo));
+
+      //  Update context (optional)
+      login(userInfo, data.token);
+
+      toast.success("Login successful!");
       navigate("/");
     } catch (err) {
       toast.error(err.message);
