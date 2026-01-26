@@ -16,18 +16,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/*  CONNECT DB ONCE */
-connectDB();
+/*  BOOTSTRAP SERVER */
+async function startServer() {
+  try {
+    await connectDB(); //  MUST WAIT
+    console.log("MongoDB connected");
 
-/* API Routes */
-app.use("/api/auth", authRoutes);
-app.use("/api/buses", busRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/payments", paymentRoutes);
+    /* API Routes */
+    app.use("/api/auth", authRoutes);
+    app.use("/api/buses", busRoutes);
+    app.use("/api/bookings", bookingRoutes);
+    app.use("/api/payments", paymentRoutes);
 
-/* Health check */
-app.get("/", (req, res) => {
-  res.send("Bus Ticket API running...");
-});
+    app.get("/", (req, res) => {
+      res.send("Bus Ticket API running...");
+    });
+
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+}
+
+startServer();
 
 export default app;
