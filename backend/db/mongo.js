@@ -1,11 +1,20 @@
 import mongoose from "mongoose";
 
-async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return mongoose.connection;
+let cached = global.mongoose;
 
-  return await mongoose.connect(process.env.MONGO_URI, {
-    bufferCommands: false, // keep this false
-  });
+if (!cached) cached = global.mongoose = { conn: null, promise: null };
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: false, // keep this false
+    }).then((conn) => conn);
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
 
 export default connectDB;
