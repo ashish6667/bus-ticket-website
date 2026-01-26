@@ -16,26 +16,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/*  CONNECT DB ONCE */
+connectDB();
+
 /* API Routes */
 app.use("/api/auth", authRoutes);
-app.use("/api/buses", async (req, res, next) => {
-  await connectDB(); // Ensure DB connected
-  next();
-}, busRoutes);
-
-app.use("/api/bookings", async (req, res, next) => {
-  await connectDB();
-  next();
-}, bookingRoutes);
-
-app.use("/api/payments", async (req, res, next) => {
-  await connectDB();
-  next();
-}, paymentRoutes);
+app.use("/api/buses", busRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
 
 /* Health check */
-app.get("/", async (req, res) => {
-  await connectDB();
+app.get("/", (req, res) => {
   res.send("Bus Ticket API running...");
 });
 
