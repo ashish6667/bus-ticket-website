@@ -16,27 +16,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* DB Middleware for all routes */
+const dbConnectMiddleware = async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB connection failed:", err);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+};
+
 /* API Routes */
-app.use("/api/auth", authRoutes);
-app.use("/api/buses", async (req, res, next) => {
-  await connectDB(); // Ensure DB connected
-  next();
-}, busRoutes);
-
-app.use("/api/bookings", async (req, res, next) => {
-  await connectDB();
-  next();
-}, bookingRoutes);
-
-app.use("/api/payments", async (req, res, next) => {
-  await connectDB();
-  next();
-}, paymentRoutes);
+app.use("/api/auth", dbConnectMiddleware, authRoutes);
+app.use("/api/buses", dbConnectMiddleware, busRoutes);
+app.use("/api/bookings", dbConnectMiddleware, bookingRoutes);
+app.use("/api/payments", dbConnectMiddleware, paymentRoutes);
 
 /* Health check */
-app.get("/", async (req, res) => {
-  await connectDB();
+app.get("/", dbConnectMiddleware, async (req, res) => {
   res.send("Bus Ticket API running...");
+});
+
+/* Default catch-all for unknown routes */
+app.all("*", (req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 export default app;
